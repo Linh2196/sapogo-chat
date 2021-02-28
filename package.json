@@ -1,15 +1,11 @@
 {
-  "name": "gochat",
-  "version": "0.4.2",
+  "name": "sapogo-chat",
+  "version": "0.4.5",
   "private": true,
   "homepage": "./",
   "main": "public/electron.js",
   "author": "linhlt4",
   "description": "Sapo GO - Chat đa sàn",
-  "repository": {
-    "type": "gitlab",
-    "url": "https://git.dktsoft.com:2008/omnichannel-apps/sapogo-chat"
-  },
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^11.1.0",
@@ -40,9 +36,9 @@
     "electron": "set DEVELOPMENT=true npm run build && electron .",
     "electron-dev": "SET DEVELOPMENT=true ELECTRON_START_URL=http://localhost:3006 concurrently cross-env BROWSER=none npm run react-start wait-on http://localhost:3006 && electron .",
     "preelectron-pack": "npm run build",
-    "electron-pack": "electron-builder build --win --macos -c.extraMetadata.main=build/electron.js --publish never",
+    "electron-pack": "electron-builder build --win --mac -c.extraMetadata.main=build/electron.js --publish never",
     "pack": "electron-builder --dir",
-    "deploy": "electron-builder build --win --macos -c.extraMetadata.main=build/electron.js --publish always"
+    "deploy": "electron-builder build --win -c.extraMetadata.main=build/electron.js --publish always"
   },
   "eslintConfig": {
     "extends": [
