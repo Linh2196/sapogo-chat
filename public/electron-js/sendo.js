@@ -16,18 +16,33 @@ exports.sendo = () => {
 
 const init = () => {
   // token_seller_api
-  ipcRenderer.on(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, (e, msg) => {
-    if (!msg || !msg.allow_access) {
-      if (!document.querySelector('#myModal')) {
-        document.querySelector('#root').insertAdjacentHTML('beforebegin', html);
+  ipcRenderer.on(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, (e, shop) => {
+    try {
+      if (!shop || !shop.allow_access) {
+        if (!document.querySelector('#myModal')) {
+          document.querySelector('#root').insertAdjacentHTML('beforebegin', html);
+        }
+        if (document.querySelector('.wrapperMenu_2s6p')) {
+          document.querySelector('.wrapperMenu_2s6p').hidden = true;
+        }
       }
+      if (shop && shop.allow_access) {
+        setTimeout(() => {
+          if (document.querySelector('#myModal')) {
+            document.querySelector('#myModal').remove();
+          }
+        }, 0);
+      }
+    } catch (e) {
+
     }
     setTimeout(() => {
-      session.fromPartition(msg.option_webview.partition).cookies.get({ url: window.location.origin, name: "token_seller_api"})
+      session.fromPartition(shop.option_webview.partition).cookies.get({ url: window.location.origin, name: "token_seller_api"})
       .then((cookies) => {
         let msg = {
           is_logged: false,
           location: JSON.parse(JSON.stringify(window.location)),
+          channelId: shop.id,
         };
         if(cookies.length > 0){
           msg['is_logged'] = true;
@@ -39,8 +54,8 @@ const init = () => {
       }).catch((error) => {
         console.log(error)
       })
-    }, 2000)
-  })
+    }, 1000)
+  });
   setTimeout(() => {
     let showPassBtn = document.querySelector('.d7e-7bcd6e');
     if (showPassBtn) {
@@ -65,13 +80,41 @@ const init = () => {
       if (type === 'account') {
         setTimeout(() => {
           const inputAccount = document.querySelector("input[name='username']");
-          handler(inputAccount, value);
-        }, 1000);
+          if (inputAccount) {
+            handler(inputAccount, value);
+          } else {
+            let interval = setInterval(() => {
+              try {
+                const dom = document.querySelector("input[name='username']");
+                if (dom) {
+                  handler(dom, value);
+                  clearInterval(interval);
+                }
+              } catch (e) {
+
+              }
+            }, 500);
+          }
+        }, 0);
       } else {
         setTimeout(() => {
-          const inputAccount = document.querySelector("input[name='password']");
-          handler(inputAccount, value);
-        }, 1000);
+          const inputPassword = document.querySelector("input[name='password']");
+          if (inputPassword) {
+            handler(inputPassword, value);
+          } else {
+            let interval = setInterval(() => {
+              try {
+                const dom = document.querySelector("input[name='password']");
+                if (dom) {
+                  handler(dom, value);
+                  clearInterval(interval);
+                }
+              } catch (e) {
+
+              }
+            }, 500);
+          }
+        }, 0);
       }
     }
   });

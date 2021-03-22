@@ -68,3 +68,9 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+### hdsd
+1. npm run build
+2. deploy: kiểm tra file electron-builder.yml => cấu hình s3 hoặc gitlab
+ - win: npm run deploy
+ - mac: npm run deploy:mac

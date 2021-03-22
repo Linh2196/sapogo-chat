@@ -46,9 +46,10 @@ export default class SidebarComponent extends Component {
     });
   };
   handleClickMenuSapo = e => {
+    const { doLogout } = this.props;
     try {
       let location = new URL(this.props.linkAdmin);
-      if (e.key == 'connect_channel') {
+      if (e.key === 'connect_channel') {
         // this.props.addShop({
         //   shop_name: Date.now(),
         //   type: 'shopee',
@@ -58,17 +59,18 @@ export default class SidebarComponent extends Component {
           key: 'admin_sapo',
           url: location.origin + '/admin/apps/market-place/home/dashboard'
         });
-      } else if (e.key == 'setting') {
+      } else if (e.key === 'setting') {
         this.props.activeWebView({
           key: 'admin_sapo',
           url: location.origin + '/admin/settings'
         });
-      } else if (e.key == 'logout') {
+      } else if (e.key === 'logout') {
+        doLogout();
         let webview = document.querySelector('[data-id="admin_sapo"]');
         webview.send('adminLogOut', {
-          partition: webview.getAttribute("partition")
+          partition: webview.getAttribute("partition"),
         });
-      } else if (e.key == 'guide') {
+      } else if (e.key === 'guide') {
         window.shell.openExternal('https://support.sapo.vn/phan-mem-chat-da-san-sapo-gochat');
       }
     } catch (err) {
@@ -158,7 +160,7 @@ export default class SidebarComponent extends Component {
                   </div>
                   <div className="channel-label">
                     {
-                      this.props.viewChannelsId.length == this.props.listShop.length ? `Tất cả gian hàng (${this.props.viewChannelsId.length})` :
+                      this.props.viewChannelsId.length === this.props.listShop.length ? `Tất cả gian hàng (${this.props.viewChannelsId.length})` :
                         `Đã chọn (${this.props.viewChannelsId.length}) gian hàng`
                     }
                   </div>
@@ -219,7 +221,7 @@ export default class SidebarComponent extends Component {
                           {
                             !this.state.sidebarMini ?
                               <Tooltip
-                                title={item.name}
+                                title={item.short_name || item.name}
                                 placement="topLeft"
                               >
                                 <img className="icon" src={item.option_webview.icon_channel.default} />
@@ -233,14 +235,22 @@ export default class SidebarComponent extends Component {
                       title={
                         <div className={item.is_logged ? "p-relative shop-title shop-active" : "p-relative shop-title"}>
                           {/* <span className="icon-channel"><img className="icon" src={this.props.getLogoChannels(item.type)} /></span> */}
-                          <span className="channel-name">{item.name}</span>
+                          <span className="channel-name">{item.short_name || item.name}</span>
                           {item.total_unread ? <span className="total-unread">{item.total_unread > 9 ? '9+' : item.total_unread}</span> : ''}
                         </div>
                       }
                     >
-                      <Menu.Item className="shop-title" key={`channel_${item.id}`}>{item.name}</Menu.Item>
+                      <Menu.Item className="shop-title" key={`channel_${item.id}`}>{item.short_name || item.name}</Menu.Item>
                       {item.is_logged && item.option_webview.key_webchat ? <Menu.Item key={item.option_webview.key_webchat}>Kênh chat</Menu.Item> : null}
-                      {item.is_logged ? <Menu.Item key={item.option_webview.key_seller}>Kênh người bán</Menu.Item> : null}
+                      {
+                        (item.is_logged && item.type === 'tiki')
+                            ? (<Menu.Item key={item.option_webview.key_seller}>Kênh người bán</Menu.Item>)
+                            : (
+                                (item.is_logged && item.allow_access)
+                                    ? (<Menu.Item key={item.option_webview.key_seller}>Kênh người bán</Menu.Item>)
+                                    : null
+                            )
+                      }
 
                       {
                         !item.is_logged && (item.tab_blanks && item.tab_blanks.length > 0) ?
@@ -290,7 +300,7 @@ export default class SidebarComponent extends Component {
                     menu = <Menu.Item key={item.option_webview.key_seller} icon={
                       !this.state.sidebarMini ?
                         <Tooltip
-                          title={item.name}
+                          title={item.short_name || item.name}
                           placement="topLeft"
                         ><span className="icon-channel channel-offline">
                             <img className="icon" src={item.option_webview.icon_channel.default} />
@@ -298,16 +308,16 @@ export default class SidebarComponent extends Component {
                           <img className="icon" src={item.option_webview.icon_channel.default} />
                         </span>
                     }>
-                      <span className="channel-name">{item.name}</span>
+                      <span className="channel-name">{item.short_name || item.name}</span>
                       <i className="ant-menu-submenu-arrow"></i>
                     </Menu.Item>
                   }
                   return menu;
                 })
               }
-              <Menu.Item key="admin_sapo" icon={<span className="icon-channel"><img className="icon" src={LogoSapo2} /></span>}>
-                Sapo
-              </Menu.Item>
+              {/*<Menu.Item key="admin_sapo" icon={<span className="icon-channel"><img className="icon" src={LogoSapo2} /></span>}>*/}
+              {/*  Sapo*/}
+              {/*</Menu.Item>*/}
             </Menu>
           </div>
 
@@ -319,9 +329,9 @@ export default class SidebarComponent extends Component {
               onClick={this.handleClickMenuSapo}
               inlineCollapsed={this.state.sidebarMini}
             >
-              <Menu.Item key="setting" icon={<img className="icon" src={IconSetting} />}>
-                <span className="title">Cấu hình</span>
-              </Menu.Item>
+              {/*<Menu.Item key="setting" icon={<img className="icon" src={IconSetting} />}>*/}
+              {/*  <span className="title">Cấu hình</span>*/}
+              {/*</Menu.Item>*/}
               <Menu.Item key="connect_channel" icon={<img className="icon" src={IconAdd} />}>
                 <span className="title">Kết nối thêm gian hàng</span>
               </Menu.Item>

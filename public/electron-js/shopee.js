@@ -18,12 +18,32 @@ exports.shopee = () => {
 
 const init = () => {
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, (e, shop) => {
-    if (!shop || !shop.allow_access) {
-      if (!document.querySelector('#myModal')) {
-        document.querySelector('#app').insertAdjacentHTML('beforebegin', html);
+    try {
+      if (!shop || !shop.allow_access) {
+        setTimeout(() => {
+          if (!document.querySelector('#myModal')) {
+            if (document.querySelector('#root')) {
+              document.querySelector('#root').insertAdjacentHTML('beforebegin', html);
+            }
+            if (document.querySelector('#app')) {
+              document.querySelector('#app').insertAdjacentHTML('beforebegin', html);
+            }
+          }
+          if (document.querySelector('.sidebar-container')) {
+            document.querySelector('.sidebar-container').hidden = true;
+          }
+        }, 0);
       }
+      if (shop && shop.allow_access) {
+        setTimeout(() => {
+          if (document.querySelector('#myModal')) {
+            document.querySelector('#myModal').remove();
+          }
+        }, 0);
+      }
+    } catch (err) {
+      console.log('shopee.IPC_CHANNEL.CHANNEL_CHECK_ONLINE err', err);
     }
-    console.log('shopee.IPC_CHANNEL.CHANNEL_CHECK_ONLINE', e);
     setTimeout(async () => {
       let msg = {
         is_online: false,
@@ -33,15 +53,15 @@ const init = () => {
       try {
         let cookies = await session.fromPartition(shop.option_webview.partition).cookies.get({ url: window.location.origin });
         msg['cookies'] = cookies;
-        let SPC_SC_UD = cookies.find((item) => item.name == 'SPC_SC_UD');
+        let SPC_SC_UD = cookies.find((item) => item.name === 'SPC_SC_UD');
         if(SPC_SC_UD && SPC_SC_UD.value){
-          let CTOKEN = cookies.find((item) => item.name == 'CTOKEN');
+          let CTOKEN = cookies.find((item) => item.name === 'CTOKEN');
           if(CTOKEN) msg['csrf_token'] = CTOKEN.value;
           isLogin = true;
           msg['platformSellerId'] = SPC_SC_UD.value;
           msg['is_logged'] = true;
           msg['is_online'] = true;
-          if(!firstClick){
+          if (!firstClick) {
             if(window.location.pathname.indexOf('webchat/conversations') > -1){
               let document_unread = document.querySelectorAll('.ReactVirtualized__Grid__innerScrollContainer .z8iJb5JoTh ._3HQ7iP3Xw9 ._3OkO9gCL4m');
               msg['total_unread'] = document_unread.length;
@@ -54,10 +74,11 @@ const init = () => {
       } catch(err){
         console.log(err);
       }
+      msg['channelId'] = shop.id;
       ipcRenderer.sendToHost(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, msg);
-      return
+      return;
       const checkLoginForm = document.getElementsByClassName("signin-form");
-      if (checkLoginForm.length == 0) {
+      if (checkLoginForm.length === 0) {
         let msg = {
           is_online: true,
           is_logged: true,
@@ -67,6 +88,7 @@ const init = () => {
           if(window.location.pathname.indexOf('webchat/conversations') > -1){
             let document_unread = document.querySelectorAll('.ReactVirtualized__Grid__innerScrollContainer .z8iJb5JoTh ._3HQ7iP3Xw9 ._3OkO9gCL4m');
             msg['total_unread'] = document_unread.length;
+            msg['channelId'] = shop.id;
           }
           firstClick = true;
         }
@@ -78,9 +100,10 @@ const init = () => {
           is_online: false,
           is_logged: false,
           location: JSON.parse(JSON.stringify(window.location)),
+          channelId: shop.id,
         });
       }
-    }, 1500);
+    }, 1000);
   });
 
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_GET_NEW_CONVERSATION, (e, shop, type) => {

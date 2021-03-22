@@ -1,6 +1,6 @@
 {
-  "name": "sapogo-chat",
-  "version": "0.4.5",
+  "name": "gochat",
+  "version": "1.0.3",
   "private": true,
   "homepage": "./",
   "main": "public/electron.js",
@@ -18,6 +18,7 @@
     "electron-is-dev": "^1.2.0",
     "electron-log": "^4.3.0",
     "electron-updater": "^4.3.5",
+    "lodash": "^4.17.21",
     "md5": "^2.3.0",
     "moment": "^2.29.1",
     "node-notifier": "^8.0.0",
@@ -36,9 +37,14 @@
     "electron": "set DEVELOPMENT=true npm run build && electron .",
     "electron-dev": "SET DEVELOPMENT=true ELECTRON_START_URL=http://localhost:3006 concurrently cross-env BROWSER=none npm run react-start wait-on http://localhost:3006 && electron .",
     "preelectron-pack": "npm run build",
-    "electron-pack": "electron-builder build --win --mac -c.extraMetadata.main=build/electron.js --publish never",
+    "electron-pack": "electron-builder build --win -c.extraMetadata.main=build/electron.js --publish never",
+    "electron-pack:mac": "electron-builder build --macos -c.extraMetadata.main=build/electron.js --publish never",
+    "electron-pack:win": "electron-builder build --win -c.extraMetadata.main=build/electron.js --publish never",
+    "electron-pack:linux": "electron-builder -l",
+    "electron-pack:all": "electron-builder -mwl",
     "pack": "electron-builder --dir",
-    "deploy": "electron-builder build --win -c.extraMetadata.main=build/electron.js --publish always"
+    "deploy": "electron-builder build --win -c.extraMetadata.main=build/electron.js --publish always",
+    "deploy:mac": "electron-builder build --mac -c.extraMetadata.main=build/electron.js --publish always"
   },
   "eslintConfig": {
     "extends": [

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { notification } from 'antd';
+import * as _ from 'lodash';
 import ipc_channels from '../constants/ipc_channels';
 import {getDecryptPassword, getKey} from '../util/aesUtil';
 
@@ -34,7 +35,6 @@ export default class WebViewComponent extends Component {
                             // this.webview.openDevTools();
                             this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_CHECK_ONLINE'], this.props.shop, this.props.typeChannel);
                             this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_GET_NEW_CONVERSATION'], this.props.shop, this.props.typeChannel);
-                            this.handleFillByChannel(this.props.shop.type, this.props.shop, this.webview)
                         });
                         window.session.fromPartition(this.props.partition).webRequest.onBeforeSendHeaders({
                             urls: ['https://banhang.shopee.vn/webchat/api/v1.2/conversation/unread-count*']
@@ -54,10 +54,10 @@ export default class WebViewComponent extends Component {
                             // this.webview.loadURL(e.url);
                             let tab_blanks = this.props.shop.tab_blanks;
                             tab_blanks = tab_blanks ? tab_blanks : [];
-                            let find_index = tab_blanks.findIndex((item) => e.url == item.url);
+                            let find_index = tab_blanks.findIndex((item) => e.url === item.url);
                             let key_active = null;
-                            if(find_index == -1) {
-                                let name = `Tab ${tab_blanks.length+1}`;
+                            if(find_index === -1) {
+                                let name = `Tab ${tab_blanks.length + 1}`;
                                 let location = new URL(e.url);
                                 if(location.href.indexOf('cf.shopee.vn/file') > -1){
                                     try{
@@ -79,26 +79,32 @@ export default class WebViewComponent extends Component {
                                 this.props.updateShop(this.props.shop.id, {
                                     tab_blanks: tab_blanks
                                 });
-                            } else{
+                            } else {
                                 key_active = tab_blanks[find_index]['key'];
                                 if(document.querySelector(`[data-id="${key_active}"]`)){
                                     document.querySelector(`[data-id="${key_active}"]`).src = e.url;
                                 }
                             }
                             this.props.activeWebView({ key: key_active})
-                        })
+                        });
                         this.webview.addEventListener('ipc-message', (e) => {
                             let msg = e.args ? e.args[0] : {};
-                            if (e.channel == ipc_channels['IPC_CHANNEL']['CHANNEL_CHECK_ONLINE']) {
-                                if(this.props.shop.type == 'shopee'){
-                                    // console.log(msg);
+                            if (e.channel === ipc_channels['IPC_CHANNEL']['CHANNEL_CHECK_ONLINE']) {
+                                if (window.autoLogin.includes(msg.channelId)) {
+                                    if (msg.is_logged) {
+                                        window.logoutList = window.logoutList.filter(item => item !== msg.channelId);
+                                    } else {
+                                        if (!window.logoutList.includes(msg.channelId)) {
+                                            window.logoutList.push(msg.channelId);
+                                        }
+                                    }
                                 }
                                 if (this.props.shop.is_logged && !msg.is_logged) {
                                     let webviews = document.querySelectorAll(`[partition*="${this.props.shop.option_webview.partition}"]`);
                                     webviews.forEach((item) => {
                                         item.reload();
-                                    })
-                                    if (this.webview.getAttribute('data-id').indexOf('seller') == -1) {
+                                    });
+                                    if (this.webview.getAttribute('data-id').indexOf('seller') === -1) {
                                         // document.querySelector(`[data-id="${this.props.shop.type}_${this.props.shop.id}"]`).parentElement.classList.remove("hidden");
                                         // document.querySelector(`[data-id="seller_${this.props.shop.type}_${this.props.shop.id}"]`).parentElement.classList.add("active");
 
@@ -108,11 +114,11 @@ export default class WebViewComponent extends Component {
                                         key: this.props.shop.option_webview.key_seller
                                     });
                                 }
-                                if(this.props.shop.is_logged != msg.is_logged){
+                                if(this.props.shop.is_logged !== msg.is_logged){
                                     msg['tab_blanks'] = [];
                                 }
                                 if(!this.props.shop.is_logged && msg.is_logged){
-                                    if(this.props.shop.type == 'lazada' && this.props.visible){
+                                    if(this.props.shop.type === 'lazada' && this.props.visible){
                                         this.props.activeWebView({
                                             key: this.props.shop.option_webview.key_webchat
                                         })
@@ -127,10 +133,10 @@ export default class WebViewComponent extends Component {
                                 // this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], '0363082674', 'account');
                             }
                             if (e.channel === ipc_channels['IPC_CHANNEL']['CHANNEL_GET_NEW_CONVERSATION']) {
-                                if(msg){
+                                if (msg) {
                                     // console.log(msg);
                                     this.props.updateShop(this.props.shop.id, msg);
-                                    if(msg.new_conversations && msg.new_conversations.length > 0){
+                                    if (msg.new_conversations && msg.new_conversations.length > 0) {
                                         // console.log('this.props.notifyInApp', msg);
                                         msg.new_conversations.forEach((item) => {
                                             if (this.props.notifyInApp) {
@@ -164,22 +170,22 @@ export default class WebViewComponent extends Component {
                                 }
                                 this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_GET_NEW_CONVERSATION'], this.props.shop, this.props.typeChannel);
                             }
-                        })
+                        });
                         this.webview.addEventListener('did-start-loading', (e) => {
                             // console.log('start loading');
-                        })
+                        });
                         this.webview.addEventListener('did-stop-loading', (e) => {
                             // console.log('stop loading');
-                        })
+                        });
 
                         this.webview.addEventListener('console-message', (e) => {
                             if(this.props.shop.type == 'tiki'){
                                 // console.log(e);
                             }
-                        })
+                        });
                         this.webview.addEventListener('update-target-url', (e) => {
 
-                        })
+                        });
                         this.webview.addEventListener('did-navigate', (e) => {
                             // if(e.url.indexOf(channelUrl[this.props.shop.type]['vn']) == -1){
                             //     if(e.target.getAttribute('data-type') == 'chat'){
@@ -188,27 +194,42 @@ export default class WebViewComponent extends Component {
                             //         e.target.src = this.props.shop.option_webview.url_seller
                             //     }
                             // }
-                        })
+                        });
+                        this.webview.addEventListener('did-finish-load', (e) => {
+                            setTimeout(() => {
+                                if (this.props.allowAccess) {
+                                    // this.handleFillByChannel(this.props.shop.type, this.props.shop, this.webview)
+                                    if (!window.logoutList.includes(this.props.shop.id)) {
+                                        this.handleFillByChannel(this.props.shop.type, this.props.shop, this.webview)
+                                    }
+                                    // setTimeout(() => {
+                                    //     if (!window.logoutList.includes(this.props.shop.id)) {
+                                    //         this.handleFillByChannel(this.props.shop.type, this.props.shop, this.webview)
+                                    //     }
+                                    // }, 0);
+                                }
+                            }, 1500);
+                        });
                         this.webview.addEventListener('did-navigate-in-page', (e) => {
                             // console.log(e);
-                        })
+                        });
                         break;
                     case 'admin':
                         this.webview.addEventListener('dom-ready', () => {
                             this.webview.send(ipc_channels['ADMIN']['ADMIN_CHECK_ONLINE'], {
                                 partition: this.webview.getAttribute('partition')
                             });
-                        })
+                        });
                         this.webview.addEventListener('new-window', (e) => {
                             this.webview.loadURL(e.url);
-                        })
+                        });
                         this.webview.addEventListener('ipc-message', (e) => {
                             try {
                                 let msg = e.args ? e.args[0] : {};
                                 if(msg && msg.is_logged){
                                     this.is_logged = msg.is_logged;
                                 }
-                                if (e.channel == ipc_channels['ADMIN']['ADMIN_CHECK_ONLINE']) {
+                                if (e.channel === ipc_channels['ADMIN']['ADMIN_CHECK_ONLINE']) {
                                     this.props.loginStatus(msg);
                                     this.webview.send(ipc_channels['ADMIN']['ADMIN_CHECK_ONLINE'], {
                                         partition: this.webview.getAttribute('partition')
@@ -220,30 +241,33 @@ export default class WebViewComponent extends Component {
                                         // })
                                     }
                                 }
-                                if(e.channel == ipc_channels['ADMIN']['ADMIN_LOGOUT']){
+                                if(e.channel === ipc_channels['ADMIN']['ADMIN_LOGOUT']){
                                     this.props.loginStatus(msg);
                                 }
-                                if(e.channel == ipc_channels['ADMIN']['ADMIN_GET_LIST_SHOP']){
+                                if(e.channel === ipc_channels['ADMIN']['ADMIN_GET_LIST_SHOP']){
                                     console.log(msg);
                                 }
-                                if(e.channel == ipc_channels['ADMIN']['ADMIN_WRONG_ALIAS']){
+                                if(e.channel === ipc_channels['ADMIN']['ADMIN_WRONG_ALIAS']){
                                     this.props.errorAliasAdmin(msg);
                                 }
-                                if(e.channel == ipc_channels['ADMIN']['ADMIN_VIEW_ALIAS']){
+                                if(e.channel === ipc_channels['ADMIN']['ADMIN_VIEW_ALIAS']){
                                     this.props.viewAliasAdmin()
                                 }
                             } catch(err){
                                 console.log(err);
                             }
-                        })
+                        });
+                        this.webview.addEventListener('did-finish-load', function() {
+                            // console.log('child :: finished loading - ');
+                        });
                         this.webview.addEventListener('console-message', (e) => {
                             // console.log(e);
 
-                        })
-                        if(this.props.typeAdmin == 'login'){
+                        });
+                        if(this.props.typeAdmin === 'login'){
                             this.webview.addEventListener('did-start-loading', (e) => {
                                 console.log('start loading');
-                            })
+                            });
                             this.webview.addEventListener('did-stop-loading', (e) => {
                                 this.props.handleLoadingButton(false);
                             })
@@ -253,7 +277,7 @@ export default class WebViewComponent extends Component {
                         this.webview.addEventListener('dom-ready', async () => {
                             if(this.props.shop){
                                 let title = this.webview.getTitle();
-                                let findIndex = this.props.shop.tab_blanks.findIndex((item) => item.key == this.props.id);
+                                let findIndex = this.props.shop.tab_blanks.findIndex((item) => item.key === this.props.id);
                                 if(findIndex > -1){
                                     let tab_blanks = this.props.shop.tab_blanks;
                                     tab_blanks[findIndex]['name'] = title;
@@ -262,13 +286,12 @@ export default class WebViewComponent extends Component {
                                     })
                                 }
                             }
-                        })
+                        });
                         break;
                     default:
                         break;
                 }
                 this.webview.addEventListener('did-fail-load', (e) => {
-                    console.log('errror', e)
                     if(e.errorDescription.indexOf("ERR_INTERNET_DISCONNECTED") > -1){
                         notification.destroy('log_webview');
                         this.props.notification({
@@ -276,7 +299,7 @@ export default class WebViewComponent extends Component {
                             description: 'Mã lỗi: '+e.errorDescription,
                             type: 'warning',
                             key: 'log_webview'
-                        })
+                        });
                         setTimeout(() => {
                             try{
                                 let webview = document.querySelector(`[data-id="${this.webview.getAttribute('data-id')}"]`);
@@ -284,9 +307,9 @@ export default class WebViewComponent extends Component {
                             } catch(err){}
                         }, 5000)
                     }
-                })
+                });
                 this.webview.addEventListener('ipc-message', (e) => {
-                    if(e.channel == 'click_element'){
+                    if(e.channel === 'click_element'){
                         if(this.props.visiblePopupFilter && this.props.setVisibleFilter){
                             this.props.setVisibleFilter(false);
                         }
@@ -297,15 +320,32 @@ export default class WebViewComponent extends Component {
                 console.log('err', err);
             }
         }
-    }
+    };
 
     componentDidUpdate(prevProps) {
         const {
             visible,
             shop,
+            allowAccess,
+            typeChannel
         } = this.props;
-        if (visible !== prevProps.visible && visible && this.webview && shop) {
-            this.handleFillByChannel(shop.type, shop, this.webview);
+        if (
+            (visible !== prevProps.visible && visible && allowAccess && this.webview && shop)
+            || (allowAccess && !_.isEqual(shop, prevProps.shop))
+        ) {
+            this.webview.addEventListener("dom-ready", async () => {
+                this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_CHECK_ONLINE'], shop, typeChannel);
+                this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_GET_NEW_CONVERSATION'], shop, typeChannel);
+                // this.handleFillByChannel(shop.type, shop, this.webview);
+                // if (!window.logoutList.includes(shop.id)) {
+                //     this.handleFillByChannel(shop.type, shop, this.webview);
+                // }
+                setTimeout(() => {
+                    if (!window.logoutList.includes(shop.id)) {
+                        this.handleFillByChannel(shop.type, shop, this.webview);
+                    }
+                }, 1500);
+            });
         }
     }
 
@@ -319,17 +359,25 @@ export default class WebViewComponent extends Component {
 
     // Xử lý auto fill password cho các sàn.
     handleFillByChannel = (channelType, shop, webview) => {
+        const { allowAccess } = this.props;
+        if (!allowAccess) return;
         const info = this.getInfo(shop);
         const {
             password,
             account,
         } = info;
+        if (!webview) {
+            return;
+        }
         switch (channelType) {
             case 'shopee': {
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], account, 'account', 'shopee');
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], password, 'password', 'shopee');
                 if (account && password) {
                     this.handleAutoClick('shopee', webview);
+                    if (!window.autoLogin.includes(shop.id)) {
+                        window.autoLogin.push(shop.id);
+                    }
                 }
                 break;
             }
@@ -338,22 +386,33 @@ export default class WebViewComponent extends Component {
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], password, 'password', 'lazada');
                 if (account && password) {
                     this.handleAutoClick('lazada', webview);
+                    if (!window.autoLogin.includes(shop.id)) {
+                        window.autoLogin.push(shop.id);
+                    }
                 }
                 break;
             }
             case 'sendo': {
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], account, 'account', 'sendo');
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], password, 'password', 'sendo');
+
                 if (account && password) {
                     this.handleAutoClick('sendo', webview);
+                    if (!window.autoLogin.includes(shop.id)) {
+                        window.autoLogin.push(shop.id);
+                    }
                 }
                 break;
             }
             case 'tiki': {
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], account, 'account', 'tiki');
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], password, 'password', 'tiki');
+
                 if (account && password) {
                     this.handleAutoClick('tiki', webview);
+                    if (!window.autoLogin.includes(shop.id)) {
+                        window.autoLogin.push(shop.id);
+                    }
                 }
                 break;
             }
@@ -399,9 +458,7 @@ export default class WebViewComponent extends Component {
         }
         try {
             const key = getKey(alias_admin, channel_identity, salt);
-            console.log('keyyy', key);
             const des = getDecryptPassword(password, key);
-            console.log('dessss', des);
             return {
                 password: des.split(`_${salt}`)[0],
                 account,

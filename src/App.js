@@ -2,6 +2,9 @@ import React, {Component} from 'react';
 import './App.css';
 import 'antd/dist/antd.css';
 import './layout.css';
+import callApi from './util/callApi';
+
+import AccessDenied from './component/AccessDenied';
 
 import {
     SideBarComponent,
@@ -27,8 +30,16 @@ import {
 } from './icons';
 import channelUrl from './constants/domains';
 import moment from 'moment';
+import NewVersion from './component/newVersion';
+import Fetching from './component/fetching';
 
 require('moment/locale/vi');
+
+// detect event khách hàng bấm nút logout trên các trang sàn.
+window.logoutList = [];
+window.autoLogin = [];
+
+const url = 'https://market-place.sapoapps.vn/home/connections';
 
 export default class AppComponent extends Component {
     constructor(props) {
@@ -119,6 +130,8 @@ export default class AppComponent extends Component {
             visiblePopupFilter: false,
             guideScreen: false,
             showFormAdmin: false,
+            checkingVersion: true,
+            newVersion: false,
         };
         this.time_set_baget = null;
     }
@@ -138,6 +151,7 @@ export default class AppComponent extends Component {
             window.ipcRenderer.on('app_version', (event, arg) => {
                 window.ipcRenderer.removeAllListeners('app_version');
                 console.log('Version ' + arg.version);
+                this.getVersion(arg.version);
             });
             window.ipcRenderer.on('update_available', () => {
                 window.ipcRenderer.removeAllListeners('update_available');
@@ -150,8 +164,30 @@ export default class AppComponent extends Component {
         }
     };
 
+    doLogout = () => {
+        let alias_admin = localStorage.getItem("alias_admin");
+        this.setState({
+            userMain: null,
+            listShop: [],
+            listShopWebview: [],
+            shopActive: null,
+            webViewActive: null,
+            viewChannelsId: this.getViewChannelsId(),
+            open_admin: false,
+            loginAdmin: false,
+            notifyInApp: true,
+            nextApp: !localStorage.getItem("next_app"),
+            linkAdmin: alias_admin ? `https://${alias_admin}.mysapo.vn` : null,
+            settingLinkAdmin: !!localStorage.getItem("next_app"),
+            countNotifyChannel: 0,
+            alias_admin: alias_admin,
+            visiblePopupFilter: false,
+            guideScreen: false,
+            showFormAdmin: false,
+        })
+    };
+
     updateShop = (id, data) => {
-        // if(id == 1) console.log(id, data);
         let shopIndex = this.state.listShop.findIndex((item) => item.id === id);
         if (shopIndex > -1) {
             for (let key in data) {
@@ -163,8 +199,6 @@ export default class AppComponent extends Component {
 
     activeWebView = (option) => {
         let {key, url} = option;
-        // if (!key) return;
-        // console.log(key);
         this.setState({
             webViewActive: key
         });
@@ -271,38 +305,70 @@ export default class AppComponent extends Component {
         return result;
     };
 
+    getVersion = async (currentVersion) => {
+        const endpoint = url + '/gochat-version';
+        // const endpoint = 'http://localhost:8868/home/connections' + '/gochat-version';
+        try {
+            const option = {
+                method: 'GET',
+                headers: {}
+            };
+            const fetchResult = await callApi(endpoint, option);
+            const data = fetchResult.data;
+            if (data !== currentVersion) {
+                this.setState({
+                    newVersion: true,
+                    checkingVersion: false,
+                });
+            } else {
+                this.setState({
+                    newVersion: false,
+                    checkingVersion: false,
+                });
+            }
+        } catch (e) {
+            this.setState({
+                newVersion: false,
+                checkingVersion: false,
+            });
+        }
+    };
+
     getListShop = async () => {
         try {
+            window.logoutList = [];
+            window.autoLogin = [];
             this.setState({reloadShop: true});
             let cookies = this.state.userMain.cookies;
             let admin_session = cookies.find((item) => item.name === "_admin_session_id");
             if (!admin_session) throw ('not session');
-            // var url = `https://market-place.sapoapps.vn/home/connections?alias=${this.state.alias_admin}`;
-            const url = `https://market-place-staging.sapoapps.vn/home/connections?alias=${this.state.alias_admin}`;
-            // var url = `http://localhost:8868/home/connections?alias=${this.state.alias_admin}`;
+            // const url = `https://market-place.sapoapps.vn/home/connections?alias=${this.state.alias_admin}`;
+            // const url = `https://market-place-staging.sapoapps.vn/home/connections?alias=${this.state.alias_admin}`;
+            // const url = `http://localhost:8868/home/connections?alias=${this.state.alias_admin}`;
+            const endpoint = url + `?alias=${this.state.alias_admin}`;
             const formData = new FormData();
-            formData.append("Cookie", `_admin_session_id=${admin_session.value}`)
+            formData.append("Cookie", `_admin_session_id=${admin_session.value}`);
             const option = {
                 method: "POST",
                 headers: {},
                 body: formData,
                 credentials: "include"
             };
-            const fetchResult = await fetch(url, option);
+            const fetchResult = await fetch(endpoint, option);
             let data = await fetchResult.json();
             if (data.connections) {
-                let view_channel_ids = this.getViewChannelsId();
                 data = data.connections.map((item) => {
                     item.type = item.type.toLowerCase();
                     item.option_webview = this.getOptionChannel(item);
                     return item;
                 });
-                let new_view_channel_ids = [];
-                view_channel_ids.forEach((item) => {
-                    if (data.find((channel) => channel.id === parseInt(item))) {
-                        new_view_channel_ids.push(item);
-                    }
-                });
+                let new_view_channel_ids = data.map((item) => item.id.toString());
+                // let new_view_channel_ids = [];
+                // view_channel_ids.forEach((item) => {
+                //     if (data.find((channel) => channel.id === parseInt(item))) {
+                //         new_view_channel_ids.push(item);
+                //     }
+                // });
                 localStorage.setItem("view_channels", JSON.stringify(new_view_channel_ids));
                 setTimeout(() => {
                     this.setState({
@@ -458,6 +524,28 @@ export default class AppComponent extends Component {
     };
 
     render = () => {
+        const {
+            reloadShop,
+            listShop,
+            newVersion,
+            checkingVersion,
+        } = this.state;
+        if (checkingVersion) {
+            return (
+                <div id="app" className="justify-content-center bg-login">
+                    <Fetching>
+                        Đang kiểm tra phiên bản
+                    </Fetching>
+                </div>
+            );
+        }
+        if (newVersion) {
+            return (
+                <div id="app" className="bg-login">
+                    <NewVersion />
+                </div>
+            );
+        }
         if (!this.state.userMain) {
             return <div id="app" className="bg-login">
                 {
@@ -499,6 +587,7 @@ export default class AppComponent extends Component {
                             visible={!this.state.loadingWebViewAdmin} id={'admin_sapo'}
                             type='admin' partition={`persist:admin_sapo`}
                             loginStatus={(msg) => {
+                                console.log('loginstatus admin', msg);
                                 if (msg.is_logged) {
                                     setTimeout(() => {
                                         this.setState({
@@ -534,7 +623,6 @@ export default class AppComponent extends Component {
             </div>
         }
 
-        const {listShop} = this.state;
         return (
             <div id="app">
                 {/* <NotificationComponent /> */}
@@ -565,6 +653,7 @@ export default class AppComponent extends Component {
                         // guideScreenAdmin: true,
                         webViewActive: null
                     })}
+                    doLogout={this.doLogout}
                 />
                 <div id="webview">
                     {
@@ -573,7 +662,16 @@ export default class AppComponent extends Component {
                     }
                     {
                         this.state.listShop.map((item) => {
+                            if (reloadShop) return null;
                             if (this.state.viewChannelsId.length > 0 && this.state.viewChannelsId.indexOf(item.id.toString()) === -1) return null;
+                            if (!item || !item.allow_access) {
+                                return (
+                                    <AccessDenied
+                                        name={item.short_name || item.name}
+                                        visible={this.state.webViewActive === item.option_webview.key_seller}
+                                    />
+                                )
+                            }
                             let webviews = [
                                 <WebViewComponent key={item.option_webview.key_seller} shop={item}
                                                   src={item.option_webview.url_seller}
@@ -588,6 +686,7 @@ export default class AppComponent extends Component {
                                                   setVisibleFilter={(visible) => this.setState({visiblePopupFilter: visible})}
                                                   setBaget={this.setBaget}
                                                   alias_admin={this.state.alias_admin}
+                                                  allowAccess={item.allow_access}
                                 />
                             ];
                             if (item.is_logged && item.option_webview.key_webchat) {

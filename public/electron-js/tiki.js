@@ -16,18 +16,33 @@ exports.tiki = () => {
 };
 
 const init = () => {
-  ipcRenderer.on(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, (e, msg) => {
-    if (!msg || !msg.allow_access) {
-      if (!document.querySelector('#myModal')) {
-        document.querySelector('#root').insertAdjacentHTML('beforebegin', html);
+  ipcRenderer.on(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, (e, shop) => {
+    try {
+      if (!shop || !shop.allow_access) {
+        if (!document.querySelector('#myModal')) {
+          document.querySelector('#root').insertAdjacentHTML('beforebegin', html);
+        }
+        if (document.querySelector('aside')) {
+          document.querySelector('aside').hidden = true;
+        }
       }
+      if (shop && shop.allow_access) {
+        setTimeout(() => {
+          if (document.querySelector('#myModal')) {
+            document.querySelector('#myModal').remove();
+          }
+        }, 0);
+      }
+    } catch (e) {
+      console.log(e);
     }
     setTimeout(async () => {
-      session.fromPartition(msg.option_webview.partition).cookies.get({ url: window.location.origin})
+      session.fromPartition(shop.option_webview.partition).cookies.get({ url: window.location.origin})
       .then(async (cookies) => {
         let msg = {
           is_logged: false,
           location: JSON.parse(JSON.stringify(window.location)),
+          channelId: shop.id,
         };
         let ACP_AUTH = cookies.find((item) => item.name == 'ACP_AUTH');
         if(ACP_AUTH){
@@ -59,7 +74,7 @@ const init = () => {
       }).catch((error) => {
         console.log(error)
       })
-    }, 2000)
+    }, 1000)
   })
 
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_GET_NEW_CONVERSATION, async (e, shop) => {
@@ -115,12 +130,32 @@ const init = () => {
       if (type === 'account') {
         setTimeout(() => {
           const inputAccount = document.querySelector('#email');
-          handler(inputAccount, value);
+          if (inputAccount) {
+            handler(inputAccount, value);
+          } else {
+            const interval = setInterval(() => {
+              const ip = document.querySelector('#email');
+              if (ip) {
+                handler(ip, value);
+                clearInterval(interval);
+              }
+            }, 500);
+          }
         }, 1000);
       } else {
         setTimeout(() => {
-          const inputAccount = document.querySelector('#password');
-          handler(inputAccount, value);
+          const inputPassword = document.querySelector('#password');
+          if (inputPassword) {
+            handler(inputPassword, value);
+          } else {
+            const interval = setInterval(() => {
+              const ip = document.querySelector('#email');
+              if (ip) {
+                handler(ip, value);
+                clearInterval(interval);
+              }
+            }, 500);
+          }
         }, 1000);
       }
     }

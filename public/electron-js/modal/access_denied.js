@@ -16,7 +16,7 @@ exports.html = `
         .modal {
             display: block; /* Hidden by default */
             position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
+            z-index: 9998; /* Sit on top */
             padding-top: 250px; /* Location of the box */
             left: 0;
             top: 0;
@@ -37,7 +37,7 @@ exports.html = `
             position: relative;
             max-width: 427px;
             border-radius: 4px;
-            z-index: 1000;
+            z-index: 9999;
         }
 
         /* The Close Button */

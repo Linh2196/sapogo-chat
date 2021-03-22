@@ -15,15 +15,30 @@ exports.lazada = () => {
 
 const init = () => {
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, (e, shop, type) => {
-    if (!shop || !shop.allow_access) {
-      if (!document.querySelector('#myModal')) {
-        document.querySelector('#root').insertAdjacentHTML('beforebegin', html);
+    try {
+      if (!shop || !shop.allow_access) {
+        if (!document.querySelector('#myModal')) {
+          document.querySelector('#root').insertAdjacentHTML('beforebegin', html);
+        }
+        if (document.querySelector('.layout-left-sidebar-container')) {
+          document.querySelector('.layout-left-sidebar-container').hidden = true;
+        }
       }
+      if (shop && shop.allow_access) {
+        setTimeout(() => {
+          if (document.querySelector('#myModal')) {
+            document.querySelector('#myModal').remove();
+          }
+        }, 0);
+      }
+    } catch (e) {
+
     }
     setTimeout(() => {
       let msg = {
         is_logged: false,
         location: JSON.parse(JSON.stringify(window.location)),
+        channelId: shop.id,
       };
       if (window.location.pathname.indexOf('apps/seller/login') == -1 && window.location.pathname.indexOf('user/forgetPassword') == -1 && window.location.pathname.indexOf('apps/register') == -1) {
         msg['is_logged'] = true;
@@ -43,7 +58,7 @@ const init = () => {
         }
       }
       ipcRenderer.sendToHost(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, msg);
-    }, 2000)
+    }, 1000)
   });
 
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_GET_NEW_CONVERSATION, (e, shop) => {
@@ -71,14 +86,44 @@ const init = () => {
     if (channel === 'lazada' && value) {
       if (type === 'account') {
         setTimeout(() => {
-          const inputAccount = document.querySelector("input[name='TPL_username']")
-          handler(inputAccount, value);
-        }, 1000);
+          const inputAccount = document.querySelector("input[name='TPL_username']");
+          if (inputAccount) {
+            handler(inputAccount, value);
+          } else {
+            const interval = setInterval(() => {
+              ipcRenderer.sendToHost('CC', 'interval');
+              try {
+                const dom = document.querySelector("input[name='TPL_username']");
+                if (dom) {
+                  handler(dom, value);
+                  clearInterval(interval);
+                  ipcRenderer.sendToHost('CC', 'success');
+                }
+              } catch (e) {
+
+              }
+            }, 500);
+          }
+        }, 0);
       } else {
         setTimeout(() => {
-          const inputAccount = document.querySelector("input[name='TPL_password']")
-          handler(inputAccount, value);
-        }, 1000);
+          const inputPassword = document.querySelector("input[name='TPL_password']");
+          if (inputPassword) {
+            handler(inputPassword, value);
+          } else {
+            let interval = setInterval(() => {
+              try {
+                const dom = document.querySelector("input[name='TPL_password']");
+                if (dom) {
+                  handler(dom, value);
+                  clearInterval(interval);
+                }
+              } catch (e) {
+
+              }
+            }, 500);
+          }
+        }, 0);
       }
     }
   });
@@ -89,8 +134,16 @@ const init = () => {
         const buttonElement = document.querySelector("button[data-spm='d_loginbtn']");
         if (buttonElement) {
           buttonElement.click();
+        } else {
+          const interval = setInterval(() => {
+            const btn = document.querySelector("button[data-spm='d_loginbtn']");
+            if (btn) {
+              btn.click();
+              clearInterval(interval);
+            }
+          }, 500);
         }
-      }, 1500);
+      }, 2000);
     }
   });
   // document.querySelector('.im-icon .unread-count')
