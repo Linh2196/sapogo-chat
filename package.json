@@ -4,7 +4,7 @@
   "private": true,
   "homepage": "./",
   "main": "public/electron.js",
-  "author": "linhlt4",
+  "author": "sapo",
   "description": "Sapo GO - Chat đa sàn",
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.5",
