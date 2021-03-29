@@ -125,11 +125,49 @@ const init = () => {
           } else if (typeof value == 'string' && value.toString().startsWith('0')) {
             value = value.replace('0', '+84');
           }
-          handler(inputAccount, value);
-        }, 1000);
+          if (inputAccount) {
+            handler(inputAccount, value);
+          } else {
+            const interval = setInterval(() => {
+              ipcRenderer.sendToHost('CC', 'interval');
+              try {
+                const dom = document.querySelector('.shopee-input__input');
+                if (dom) {
+                  handler(dom, value);
+                  clearInterval(interval);
+                  ipcRenderer.sendToHost('CC', 'success');
+                }
+              } catch (e) {
+
+              }
+            }, 500);
+          }
+        }, 0);
       } else {
         setTimeout(() => {
           const inputAccount = document.querySelectorAll('.shopee-input__input')[1];
+          if (typeof value === 'number' && value.toString().startsWith('0')) {
+            value = value.replace('0', '+84');
+          } else if (typeof value == 'string' && value.toString().startsWith('0')) {
+            value = value.replace('0', '+84');
+          }
+          if (inputAccount) {
+            handler(inputAccount, value);
+          } else {
+            const interval = setInterval(() => {
+              ipcRenderer.sendToHost('CC', 'interval');
+              try {
+                const dom = document.querySelectorAll('.shopee-input__input')[1];
+                if (dom) {
+                  handler(dom, value);
+                  clearInterval(interval);
+                  ipcRenderer.sendToHost('CC', 'success');
+                }
+              } catch (e) {
+
+              }
+            }, 500);
+          }
           handler(inputAccount, value);
         }, 1000);
       }
@@ -137,14 +175,19 @@ const init = () => {
   });
 
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_AUTO_SIGN_IN_CLICK, (e, channel) => {
-    if (channel === 'shopee') {
-      setTimeout(() => {
-        const buttonElement = document.querySelector("button[class='shopee-button shopee-button--primary shopee-button--large shopee-button--block']");
-        if (buttonElement) {
-          buttonElement.click();
-        }
-      }, 1500);
-    }
+    return 1;
+    // if (channel === 'shopee') {
+    //   setTimeout(() => {
+    //     const interval = setInterval(() => {
+    //       const inputAccount = document.querySelector('.shopee-input__input');
+    //       const buttonElement = document.querySelector("button[class='shopee-button shopee-button--primary shopee-button--large shopee-button--block']");
+    //       if (inputAccount && inputAccount.value && buttonElement) {
+    //         buttonElement.click();
+    //         clearInterval(interval);
+    //       }
+    //     }, 500);
+    //   }, 2000);
+    // }
   });
 };
 

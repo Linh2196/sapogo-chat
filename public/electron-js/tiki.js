@@ -164,10 +164,14 @@ const init = () => {
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_AUTO_SIGN_IN_CLICK, (e, channel) => {
     if (channel === 'tiki') {
       setTimeout(() => {
+        const inputAccount = document.querySelector('#email');
         const buttonElement = document.querySelector("button[type='submit']");
-        if (buttonElement) {
-          buttonElement.click();
-        }
+        const interval = setInterval(() => {
+          if (inputAccount && inputAccount.value && buttonElement) {
+            buttonElement.click();
+            clearInterval(interval);
+          }
+        }, 500);
       }, 1500);
     }
   });

@@ -122,11 +122,15 @@ const init = () => {
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_AUTO_SIGN_IN_CLICK, (e, channel) => {
     if (channel === 'sendo') {
       setTimeout(() => {
-        const buttonElement = document.querySelector('.d7e-dc4b7b');
-        if (buttonElement) {
-          buttonElement.click();
-        }
-      }, 1500);
+        const interval = setInterval(() => {
+          const inputAccount = document.querySelector("input[name='username']");
+          const buttonElement = document.querySelector('.d7e-dc4b7b');
+          if (inputAccount && inputAccount.value && buttonElement) {
+            buttonElement.click();
+            clearInterval(interval);
+          }
+        }, 500);
+      }, 2000);
     }
   });
 };

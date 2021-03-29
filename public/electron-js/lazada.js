@@ -131,18 +131,14 @@ const init = () => {
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_AUTO_SIGN_IN_CLICK, (e, channel) => {
     if (channel === 'lazada') {
       setTimeout(() => {
-        const buttonElement = document.querySelector("button[data-spm='d_loginbtn']");
-        if (buttonElement) {
-          buttonElement.click();
-        } else {
-          const interval = setInterval(() => {
-            const btn = document.querySelector("button[data-spm='d_loginbtn']");
-            if (btn) {
-              btn.click();
-              clearInterval(interval);
-            }
-          }, 500);
-        }
+        const inputAccount = document.querySelector("input[name='TPL_username']");
+        const interval = setInterval(() => {
+          const btn = document.querySelector("button[data-spm='d_loginbtn']");
+          if (btn && inputAccount && inputAccount.value) {
+            btn.click();
+            clearInterval(interval);
+          }
+        }, 500);
       }, 2000);
     }
   });
