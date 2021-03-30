@@ -1,11 +1,11 @@
 const { app, BrowserView, BrowserWindow, ipcMain, session, Menu } = require('electron');
-// const { autoUpdater } = require('electron-updater');
+const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 const isMac = process.platform === 'darwin'
 
 // configure logging
-// autoUpdater.logger = log;
-// autoUpdater.logger.transports.file.level = 'info';
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
 log.info('App starting...');
 
 const path = require('path');
@@ -56,7 +56,7 @@ function createWindow() {
         })
 
         mainWindow.once('ready-to-show', () => {
-            // autoUpdater.checkForUpdatesAndNotify();
+            autoUpdater.checkForUpdatesAndNotify();
         });
         mainWindow.on('closed', function () {
             console.log('close')
@@ -165,21 +165,21 @@ ipcMain.on('app_version', (event) => {
     event.sender.send('app_version', { version: app.getVersion() });
 });
 
-// autoUpdater.on('update-available', () => {
-//     try{
-//         if (mainWindow) mainWindow.webContents.send('update_available');
-//     } catch(err){
-//
-//     }
-// });
+autoUpdater.on('update-available', () => {
+    try{
+        if (mainWindow) mainWindow.webContents.send('update_available');
+    } catch(err){
 
-// autoUpdater.on('update-downloaded', () => {
-//     try {
-//         if (mainWindow) mainWindow.webContents.send('update_downloaded');
-//     } catch(err){
-//
-//     }
-// });
+    }
+});
+
+autoUpdater.on('update-downloaded', () => {
+    try {
+        if (mainWindow) mainWindow.webContents.send('update_downloaded');
+    } catch(err){
+
+    }
+});
 
 ipcMain.on('restart_app', () => {
     // autoUpdater.quitAndInstall();
