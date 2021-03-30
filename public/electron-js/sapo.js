@@ -58,17 +58,20 @@ const init = () => {
     setTimeout(async () => {
       try{
         const checkLoginForm = document.getElementsByClassName("form-login");
-        let username = document.querySelector('.sapo-menu-list-item-label--user-name');
-        if (checkLoginForm.length == 0 && username) {
+        let username_menu = document.querySelector('.sapo-menu-list-item-label--user-name');
+        let username = username_menu ? username_menu : document.querySelector('.jss176');
+        if (checkLoginForm.length === 0 && username) {
           username = username.textContent;
-          let profile_picture = document.querySelector('.profile-pic').src;
+          // let profile_picture_element = document.querySelector('.profile-pic');
+          // let profile_picture = profile_picture_element ? profile_picture_element.src : 'public/avatar-default.png';
           let msg = {
             is_logged: true,
             location: JSON.parse(JSON.stringify(window.location)),
             full_name: username.replace(/\n/g, '').trim(),
           };
           isLogin = true;
-          if (profile_picture) msg['profile_picture'] = profile_picture;
+          const profile_picture = window.location.origin + '/favicon.ico';
+          msg['profile_picture'] = profile_picture;
           let cookies = await session.fromPartition(arg.partition).cookies.get({ url: window.location.origin });
           msg['cookies'] = cookies;
           ipcRenderer.sendToHost(ADMIN.ADMIN_CHECK_ONLINE, msg);

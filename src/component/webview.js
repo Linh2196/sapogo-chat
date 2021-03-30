@@ -472,13 +472,17 @@ export default class WebViewComponent extends Component {
         }
     };
 
+    setRef = (e) => {
+      this.webview = e;
+    };
+
     render = () => {
-        var { src, partition, visible, id, typeChannel} = this.props;
+        const { src, partition, visible, id, typeChannel} = this.props;
         return (
             <div className={!visible ? "webview hidden" : "webview active"}>
                 <webview className={id} style={{ width: "100%", height: "100%" }} src={src} webpreferences="contextIsolation"
                     partition={partition} preload={window.pathPreloader} useragent={window.navigator.userAgent}
-                    ref={(e) => this.webview = e} autosize="true" data-id={id} data-type={typeChannel}
+                    ref={this.setRef} autosize="true" data-id={id} data-type={typeChannel}
                 // allowpopups="true"
                 />
             </div>

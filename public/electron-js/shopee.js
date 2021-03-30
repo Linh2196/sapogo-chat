@@ -169,7 +169,7 @@ const init = () => {
             }, 500);
           }
           handler(inputAccount, value);
-        }, 1000);
+        }, 0);
       }
     }
   });

@@ -1,10 +1,10 @@
 {
   "name": "gochat",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": true,
   "homepage": "./",
   "main": "public/electron.js",
-  "author": "sapo",
+  "author": "linhlt4",
   "description": "Sapo GO - Chat đa sàn",
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.5",
