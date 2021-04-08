@@ -91,7 +91,7 @@ const init = () => {
                   clearInterval(interval);
                 }
               } catch (e) {
-
+                clearInterval(interval);
               }
             }, 500);
           }
@@ -110,7 +110,7 @@ const init = () => {
                   clearInterval(interval);
                 }
               } catch (e) {
-
+                clearInterval(interval);
               }
             }, 500);
           }

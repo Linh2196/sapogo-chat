@@ -1,6 +1,6 @@
 {
   "name": "gochat",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "homepage": "./",
   "main": "public/electron.js",
@@ -40,6 +40,7 @@
     "electron-pack": "electron-builder build --win -c.extraMetadata.main=build/electron.js --publish never",
     "electron-pack:mac": "electron-builder build --macos -c.extraMetadata.main=build/electron.js --publish never",
     "electron-pack:win": "electron-builder build --win -c.extraMetadata.main=build/electron.js --publish never",
+    "electron-pack:win32": "electron-builder build --win --ia32 -c.extraMetadata.main=build/electron.js --publish never",
     "electron-pack:linux": "electron-builder -l",
     "electron-pack:all": "electron-builder -mwl",
     "pack": "electron-builder --dir",

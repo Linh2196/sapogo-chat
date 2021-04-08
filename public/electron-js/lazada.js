@@ -91,16 +91,15 @@ const init = () => {
             handler(inputAccount, value);
           } else {
             const interval = setInterval(() => {
-              ipcRenderer.sendToHost('CC', 'interval');
               try {
                 const dom = document.querySelector("input[name='TPL_username']");
                 if (dom) {
                   handler(dom, value);
                   clearInterval(interval);
-                  ipcRenderer.sendToHost('CC', 'success');
+                  // ipcRenderer.sendToHost('CC', 'success');
                 }
               } catch (e) {
-
+                clearInterval(interval);
               }
             }, 500);
           }
@@ -119,7 +118,7 @@ const init = () => {
                   clearInterval(interval);
                 }
               } catch (e) {
-
+                clearInterval(interval);
               }
             }, 500);
           }

@@ -89,26 +89,16 @@ export default class WebViewComponent extends Component {
                         });
                         this.webview.addEventListener('ipc-message', (e) => {
                             let msg = e.args ? e.args[0] : {};
+                            if (e.channel === 'CC') {
+                                console.log('CC', msg);
+                            }
                             if (e.channel === ipc_channels['IPC_CHANNEL']['CHANNEL_CHECK_ONLINE']) {
-                                if (window.autoLogin.includes(msg.channelId)) {
-                                    if (msg.is_logged) {
-                                        window.logoutList = window.logoutList.filter(item => item !== msg.channelId);
-                                    } else {
-                                        if (!window.logoutList.includes(msg.channelId)) {
-                                            window.logoutList.push(msg.channelId);
-                                        }
-                                    }
-                                }
                                 if (this.props.shop.is_logged && !msg.is_logged) {
                                     let webviews = document.querySelectorAll(`[partition*="${this.props.shop.option_webview.partition}"]`);
                                     webviews.forEach((item) => {
                                         item.reload();
                                     });
                                     if (this.webview.getAttribute('data-id').indexOf('seller') === -1) {
-                                        // document.querySelector(`[data-id="${this.props.shop.type}_${this.props.shop.id}"]`).parentElement.classList.remove("hidden");
-                                        // document.querySelector(`[data-id="seller_${this.props.shop.type}_${this.props.shop.id}"]`).parentElement.classList.add("active");
-
-                                        // console.log(this.props.shop.option_webview.key_seller);
                                     }
                                     this.props.activeWebView({
                                         key: this.props.shop.option_webview.key_seller
@@ -129,15 +119,11 @@ export default class WebViewComponent extends Component {
                             }
                             if (e.channel === ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL']) {
                                 console.log('logger: CHANNEL_INPUT_AUTO_FILL', e);
-                                // this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], '0363082674', 'account');
-                                // this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], '0363082674', 'account');
                             }
                             if (e.channel === ipc_channels['IPC_CHANNEL']['CHANNEL_GET_NEW_CONVERSATION']) {
                                 if (msg) {
-                                    // console.log(msg);
                                     this.props.updateShop(this.props.shop.id, msg);
                                     if (msg.new_conversations && msg.new_conversations.length > 0) {
-                                        // console.log('this.props.notifyInApp', msg);
                                         msg.new_conversations.forEach((item) => {
                                             if (this.props.notifyInApp) {
                                                 this.props.notificationChannel({
@@ -179,36 +165,22 @@ export default class WebViewComponent extends Component {
                         });
 
                         this.webview.addEventListener('console-message', (e) => {
-                            if(this.props.shop.type == 'tiki'){
-                                // console.log(e);
+                            if(this.props.shop.type === 'tiki'){
                             }
                         });
                         this.webview.addEventListener('update-target-url', (e) => {
 
                         });
                         this.webview.addEventListener('did-navigate', (e) => {
-                            // if(e.url.indexOf(channelUrl[this.props.shop.type]['vn']) == -1){
-                            //     if(e.target.getAttribute('data-type') == 'chat'){
-                            //         e.target.src = this.props.shop.option_webview.url_chat
-                            //     } else {
-                            //         e.target.src = this.props.shop.option_webview.url_seller
-                            //     }
-                            // }
                         });
                         this.webview.addEventListener('did-finish-load', (e) => {
                             setTimeout(() => {
                                 if (this.props.allowAccess) {
-                                    // this.handleFillByChannel(this.props.shop.type, this.props.shop, this.webview)
-                                    if (!window.logoutList.includes(this.props.shop.id)) {
+                                    if (window.autoLogin.includes(this.props.shop.id)) {
                                         this.handleFillByChannel(this.props.shop.type, this.props.shop, this.webview)
                                     }
-                                    // setTimeout(() => {
-                                    //     if (!window.logoutList.includes(this.props.shop.id)) {
-                                    //         this.handleFillByChannel(this.props.shop.type, this.props.shop, this.webview)
-                                    //     }
-                                    // }, 0);
                                 }
-                            }, 1500);
+                            }, 5000);
                         });
                         this.webview.addEventListener('did-navigate-in-page', (e) => {
                             // console.log(e);
@@ -305,7 +277,7 @@ export default class WebViewComponent extends Component {
                                 let webview = document.querySelector(`[data-id="${this.webview.getAttribute('data-id')}"]`);
                                 if(webview) webview.reload();
                             } catch(err){}
-                        }, 5000)
+                        }, 3000)
                     }
                 });
                 this.webview.addEventListener('ipc-message', (e) => {
@@ -336,15 +308,11 @@ export default class WebViewComponent extends Component {
             this.webview.addEventListener("dom-ready", async () => {
                 this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_CHECK_ONLINE'], shop, typeChannel);
                 this.webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_GET_NEW_CONVERSATION'], shop, typeChannel);
-                // this.handleFillByChannel(shop.type, shop, this.webview);
-                // if (!window.logoutList.includes(shop.id)) {
-                //     this.handleFillByChannel(shop.type, shop, this.webview);
-                // }
                 setTimeout(() => {
-                    if (!window.logoutList.includes(shop.id)) {
+                    if (window.autoLogin.includes(shop.id)) {
                         this.handleFillByChannel(shop.type, shop, this.webview);
                     }
-                }, 1500);
+                }, 5000);
             });
         }
     }
@@ -367,16 +335,20 @@ export default class WebViewComponent extends Component {
             account,
         } = info;
         if (!webview) {
+            console.log('ko co webview');
             return;
         }
         switch (channelType) {
             case 'shopee': {
+                console.log('------------------------------');
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], account, 'account', 'shopee');
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], password, 'password', 'shopee');
+                console.log(`Gửi event CHANNEL_INPUT_AUTO_FILL shopee ${shop.name}: account: ${account} password: ${password}`);
+                console.log('------------------------------');
                 if (account && password) {
                     this.handleAutoClick('shopee', webview);
-                    if (!window.autoLogin.includes(shop.id)) {
-                        window.autoLogin.push(shop.id);
+                    if (window.autoLogin.includes(shop.id)) {
+                        window.autoLogin = [...window.autoLogin.filter(i => i !== shop.id)];
                     }
                 }
                 break;
@@ -386,8 +358,8 @@ export default class WebViewComponent extends Component {
                 webview.send(ipc_channels['IPC_CHANNEL']['CHANNEL_INPUT_AUTO_FILL'], password, 'password', 'lazada');
                 if (account && password) {
                     this.handleAutoClick('lazada', webview);
-                    if (!window.autoLogin.includes(shop.id)) {
-                        window.autoLogin.push(shop.id);
+                    if (window.autoLogin.includes(shop.id)) {
+                        window.autoLogin = [...window.autoLogin.filter(i => i !== shop.id)];
                     }
                 }
                 break;
@@ -398,8 +370,8 @@ export default class WebViewComponent extends Component {
 
                 if (account && password) {
                     this.handleAutoClick('sendo', webview);
-                    if (!window.autoLogin.includes(shop.id)) {
-                        window.autoLogin.push(shop.id);
+                    if (window.autoLogin.includes(shop.id)) {
+                        window.autoLogin = [...window.autoLogin.filter(i => i !== shop.id)];
                     }
                 }
                 break;
@@ -410,8 +382,8 @@ export default class WebViewComponent extends Component {
 
                 if (account && password) {
                     this.handleAutoClick('tiki', webview);
-                    if (!window.autoLogin.includes(shop.id)) {
-                        window.autoLogin.push(shop.id);
+                    if (window.autoLogin.includes(shop.id)) {
+                        window.autoLogin = [...window.autoLogin.filter(i => i !== shop.id)];
                     }
                 }
                 break;

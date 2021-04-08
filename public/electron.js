@@ -182,7 +182,7 @@ autoUpdater.on('update-downloaded', () => {
 });
 
 ipcMain.on('restart_app', () => {
-    // autoUpdater.quitAndInstall();
+    autoUpdater.quitAndInstall();
 });
 
 ipcMain.on('set-badge', (event, msg) => {

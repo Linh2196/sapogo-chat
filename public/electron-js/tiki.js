@@ -128,35 +128,31 @@ const init = () => {
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_INPUT_AUTO_FILL, (e, value = '', type, channel) => {
     if (channel === 'tiki' && value) {
       if (type === 'account') {
-        setTimeout(() => {
-          const inputAccount = document.querySelector('#email');
-          if (inputAccount) {
-            handler(inputAccount, value);
-          } else {
-            const interval = setInterval(() => {
-              const ip = document.querySelector('#email');
-              if (ip) {
-                handler(ip, value);
-                clearInterval(interval);
-              }
-            }, 500);
-          }
-        }, 1000);
+        const inputAccount = document.querySelector('#email');
+        if (inputAccount) {
+          handler(inputAccount, value);
+        } else {
+          const interval = setInterval(() => {
+            const ip = document.querySelector('#email');
+            if (ip) {
+              handler(ip, value);
+              clearInterval(interval);
+            }
+          }, 500);
+        }
       } else {
-        setTimeout(() => {
-          const inputPassword = document.querySelector('#password');
-          if (inputPassword) {
-            handler(inputPassword, value);
-          } else {
-            const interval = setInterval(() => {
-              const ip = document.querySelector('#email');
-              if (ip) {
-                handler(ip, value);
-                clearInterval(interval);
-              }
-            }, 500);
-          }
-        }, 1000);
+        const inputPassword = document.querySelector('#password');
+        if (inputPassword) {
+          handler(inputPassword, value);
+        } else {
+          const interval = setInterval(() => {
+            const ip = document.querySelector('#email');
+            if (ip) {
+              handler(ip, value);
+              clearInterval(interval);
+            }
+          }, 500);
+        }
       }
     }
   });

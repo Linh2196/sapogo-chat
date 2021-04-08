@@ -17,134 +17,139 @@ exports.shopee = () => {
 };
 
 const init = () => {
-  ipcRenderer.on(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, (e, shop) => {
     try {
-      if (!shop || !shop.allow_access) {
-        setTimeout(() => {
-          if (!document.querySelector('#myModal')) {
-            if (document.querySelector('#root')) {
-              document.querySelector('#root').insertAdjacentHTML('beforebegin', html);
+    ipcRenderer.on(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, (e, shop) => {
+        try {
+            if (!shop || !shop.allow_access) {
+                setTimeout(() => {
+                    if (!document.querySelector('#myModal')) {
+                        if (document.querySelector('#root')) {
+                            document.querySelector('#root').insertAdjacentHTML('beforebegin', html);
+                        }
+                        if (document.querySelector('#app')) {
+                            document.querySelector('#app').insertAdjacentHTML('beforebegin', html);
+                        }
+                    }
+                    if (document.querySelector('.sidebar-container')) {
+                        document.querySelector('.sidebar-container').hidden = true;
+                    }
+                }, 0);
             }
-            if (document.querySelector('#app')) {
-              document.querySelector('#app').insertAdjacentHTML('beforebegin', html);
+            if (shop && shop.allow_access) {
+                setTimeout(() => {
+                    if (document.querySelector('#myModal')) {
+                        document.querySelector('#myModal').remove();
+                    }
+                }, 0);
             }
-          }
-          if (document.querySelector('.sidebar-container')) {
-            document.querySelector('.sidebar-container').hidden = true;
-          }
-        }, 0);
-      }
-      if (shop && shop.allow_access) {
-        setTimeout(() => {
-          if (document.querySelector('#myModal')) {
-            document.querySelector('#myModal').remove();
-          }
-        }, 0);
-      }
-    } catch (err) {
-      console.log('shopee.IPC_CHANNEL.CHANNEL_CHECK_ONLINE err', err);
-    }
-    setTimeout(async () => {
-      let msg = {
-        is_online: false,
-        is_logged: false,
-        location: JSON.parse(JSON.stringify(window.location)),
-      };
-      try {
-        let cookies = await session.fromPartition(shop.option_webview.partition).cookies.get({ url: window.location.origin });
-        msg['cookies'] = cookies;
-        let SPC_SC_UD = cookies.find((item) => item.name === 'SPC_SC_UD');
-        if(SPC_SC_UD && SPC_SC_UD.value){
-          let CTOKEN = cookies.find((item) => item.name === 'CTOKEN');
-          if(CTOKEN) msg['csrf_token'] = CTOKEN.value;
-          isLogin = true;
-          msg['platformSellerId'] = SPC_SC_UD.value;
-          msg['is_logged'] = true;
-          msg['is_online'] = true;
-          if (!firstClick) {
-            if(window.location.pathname.indexOf('webchat/conversations') > -1){
-              let document_unread = document.querySelectorAll('.ReactVirtualized__Grid__innerScrollContainer .z8iJb5JoTh ._3HQ7iP3Xw9 ._3OkO9gCL4m');
-              msg['total_unread'] = document_unread.length;
-            }
-            firstClick = true;
-          }
-        } else {
-          isLogin = false;
+        } catch (err) {
+            console.log('shopee.IPC_CHANNEL.CHANNEL_CHECK_ONLINE err', err);
         }
-      } catch(err){
-        console.log(err);
-      }
-      msg['channelId'] = shop.id;
-      ipcRenderer.sendToHost(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, msg);
-      return;
-      const checkLoginForm = document.getElementsByClassName("signin-form");
-      if (checkLoginForm.length === 0) {
-        let msg = {
-          is_online: true,
-          is_logged: true,
-          location: JSON.parse(JSON.stringify(window.location)),
-        };
-        if(!firstClick){
-          if(window.location.pathname.indexOf('webchat/conversations') > -1){
-            let document_unread = document.querySelectorAll('.ReactVirtualized__Grid__innerScrollContainer .z8iJb5JoTh ._3HQ7iP3Xw9 ._3OkO9gCL4m');
-            msg['total_unread'] = document_unread.length;
+        setTimeout(async () => {
+            let msg = {
+                is_online: false,
+                is_logged: false,
+                location: JSON.parse(JSON.stringify(window.location)),
+            };
+            try {
+                let cookies = await session.fromPartition(shop.option_webview.partition).cookies.get({ url: window.location.origin });
+                msg['cookies'] = cookies;
+                let SPC_SC_UD = cookies.find((item) => item.name === 'SPC_SC_UD');
+                if(SPC_SC_UD && SPC_SC_UD.value){
+                    let CTOKEN = cookies.find((item) => item.name === 'CTOKEN');
+                    if(CTOKEN) msg['csrf_token'] = CTOKEN.value;
+                    isLogin = true;
+                    msg['platformSellerId'] = SPC_SC_UD.value;
+                    msg['is_logged'] = true;
+                    msg['is_online'] = true;
+                    if (!firstClick) {
+                        if(window.location.pathname.indexOf('webchat/conversations') > -1){
+                            let document_unread = document.querySelectorAll('.ReactVirtualized__Grid__innerScrollContainer .z8iJb5JoTh ._3HQ7iP3Xw9 ._3OkO9gCL4m');
+                            msg['total_unread'] = document_unread.length;
+                        }
+                        firstClick = true;
+                    }
+                } else {
+                    isLogin = false;
+                }
+            } catch(err){
+                console.log(err);
+            }
             msg['channelId'] = shop.id;
-          }
-          firstClick = true;
-        }
-        isLogin = true;
-        ipcRenderer.sendToHost(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, msg);
-      } else {
-        isLogin = false;
-        ipcRenderer.sendToHost(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, {
-          is_online: false,
-          is_logged: false,
-          location: JSON.parse(JSON.stringify(window.location)),
-          channelId: shop.id,
-        });
-      }
-    }, 1000);
-  });
+            ipcRenderer.sendToHost(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, msg);
+            return;
+            const checkLoginForm = document.getElementsByClassName("signin-form");
+            if (checkLoginForm.length === 0) {
+                let msg = {
+                    is_online: true,
+                    is_logged: true,
+                    location: JSON.parse(JSON.stringify(window.location)),
+                };
+                if(!firstClick){
+                    if(window.location.pathname.indexOf('webchat/conversations') > -1){
+                        let document_unread = document.querySelectorAll('.ReactVirtualized__Grid__innerScrollContainer .z8iJb5JoTh ._3HQ7iP3Xw9 ._3OkO9gCL4m');
+                        msg['total_unread'] = document_unread.length;
+                        msg['channelId'] = shop.id;
+                    }
+                    firstClick = true;
+                }
+                isLogin = true;
+                ipcRenderer.sendToHost(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, msg);
+            } else {
+                isLogin = false;
+                ipcRenderer.sendToHost(IPC_CHANNEL.CHANNEL_CHECK_ONLINE, {
+                    is_online: false,
+                    is_logged: false,
+                    location: JSON.parse(JSON.stringify(window.location)),
+                    channelId: shop.id,
+                });
+            }
+        }, 1000);
+    });
+} catch (e) {
 
-  ipcRenderer.on(IPC_CHANNEL.CHANNEL_GET_NEW_CONVERSATION, (e, shop, type) => {
-    if(type == 'chat'){
-      setTimeout(() => {
-        // getUnread(shop);
-        getConversation(shop);
-      }, 1000)
     }
-  });
+
+    try {
+        ipcRenderer.on(IPC_CHANNEL.CHANNEL_GET_NEW_CONVERSATION, (e, shop, type) => {
+            if(type === 'chat'){
+                setTimeout(() => {
+                    // getUnread(shop);
+                    getConversation(shop);
+                }, 1000)
+            }
+        });
+    } catch (e) {
+    }
 
   ipcRenderer.on(IPC_CHANNEL.CHANNEL_INPUT_AUTO_FILL, (e, value = '', type, channel) => {
-    if (channel === 'shopee' && value) {
-      if (type === 'account') {
-        setTimeout(() => {
+    try {
+      if (channel === 'shopee' && value) {
+        if (type === 'account') {
           const inputAccount = document.querySelector('.shopee-input__input');
-          if (typeof value === 'number' && value.toString().startsWith('0')) {
-            value = value.replace('0', '+84');
-          } else if (typeof value == 'string' && value.toString().startsWith('0')) {
-            value = value.replace('0', '+84');
+          try {
+            if (typeof value == 'string' && value.toString().startsWith('0')) {
+              value = value.replace('0', '+84');
+            }
+          } catch (e) {
+
           }
           if (inputAccount) {
             handler(inputAccount, value);
           } else {
             const interval = setInterval(() => {
-              ipcRenderer.sendToHost('CC', 'interval');
               try {
                 const dom = document.querySelector('.shopee-input__input');
                 if (dom) {
                   handler(dom, value);
                   clearInterval(interval);
-                  ipcRenderer.sendToHost('CC', 'success');
                 }
               } catch (e) {
-
+                ipcRenderer.sendToHost('CC', { name: 'shopee', value, type, channel, msg: 'loi cmnr', err: e });
               }
             }, 500);
           }
-        }, 0);
-      } else {
-        setTimeout(() => {
+        } else {
           const inputAccount = document.querySelectorAll('.shopee-input__input')[1];
           if (typeof value === 'number' && value.toString().startsWith('0')) {
             value = value.replace('0', '+84');
@@ -155,22 +160,22 @@ const init = () => {
             handler(inputAccount, value);
           } else {
             const interval = setInterval(() => {
-              ipcRenderer.sendToHost('CC', 'interval');
               try {
                 const dom = document.querySelectorAll('.shopee-input__input')[1];
                 if (dom) {
                   handler(dom, value);
                   clearInterval(interval);
-                  ipcRenderer.sendToHost('CC', 'success');
                 }
               } catch (e) {
-
+                ipcRenderer.sendToHost('CC', { name: 'shopee', value, type, channel, msg: 'loi cmnr', err: e });
               }
             }, 500);
           }
           handler(inputAccount, value);
-        }, 0);
+        }
       }
+    } catch (e) {
+      ipcRenderer.sendToHost('CC', { name: 'shopee', value, type, channel, msg: 'loi end catch', err: e });
     }
   });
 
@@ -192,10 +197,14 @@ const init = () => {
 };
 
 const handler = (inputDOM, value) => {
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-    nativeInputValueSetter.call(inputDOM, value);
-    const inputEvent = new Event("input", { bubbles: true });
-    inputDOM.dispatchEvent(inputEvent);
+    try {
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+        nativeInputValueSetter.call(inputDOM, value);
+        const inputEvent = new Event("input", { bubbles: true });
+        inputDOM.dispatchEvent(inputEvent);
+    } catch (e) {
+
+    }
 };
 
 const getUnread = (shop) => {

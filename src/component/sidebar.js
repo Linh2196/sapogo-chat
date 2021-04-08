@@ -130,8 +130,11 @@ export default class SidebarComponent extends Component {
                   placement="bottomLeft"
                 >
                   <div className="btn-back" onClick={(e) => {
-                    let webview = document.querySelector(`[data-id="${this.props.webViewActive}"]`);
-                    if (webview) webview.goBack();
+                    window.autoLogin = [];
+                    const webview = document.querySelector(`[data-id="${this.props.webViewActive}"]`);
+                    if (webview) {
+                      webview.goBack();
+                    }
                   }}>
                     <img src={IconBack} />
                   </div>
@@ -177,7 +180,9 @@ export default class SidebarComponent extends Component {
                   placement="right"
                   title="Làm mới danh sách gian hàng"
                 >
-                  <div className={this.props.reloadShop ? "btn-reload d-flex active" : "btn-reload d-flex"} onClick={this.props.getListShop}>
+                  <div
+                      className={this.props.reloadShop ? "btn-reload d-flex active" : "btn-reload d-flex"}
+                      onClick={this.props.getListShop}>
                     <img src={IconReload} />
                   </div>
                 </Tooltip>

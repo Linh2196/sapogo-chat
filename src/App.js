@@ -4,6 +4,10 @@ import 'antd/dist/antd.css';
 import './layout.css';
 import callApi from './util/callApi';
 
+import {
+    CloseOutlined,
+} from '@ant-design/icons';
+
 import AccessDenied from './component/AccessDenied';
 
 import {
@@ -36,7 +40,6 @@ import Fetching from './component/fetching';
 require('moment/locale/vi');
 
 // detect event khách hàng bấm nút logout trên các trang sàn.
-window.logoutList = [];
 window.autoLogin = [];
 
 const url = 'https://market-place.sapoapps.vn/home/connections';
@@ -132,6 +135,7 @@ export default class AppComponent extends Component {
             showFormAdmin: false,
             checkingVersion: true,
             newVersion: false,
+            closeUpdate: false,
         };
         this.time_set_baget = null;
     }
@@ -291,11 +295,9 @@ export default class AppComponent extends Component {
                 result['url_seller'] = `${channelUrl['lazada']['vn']}`;
                 break;
             case 'sendo':
-                // result['url_chat'] = `${channelUrl['sendo']['vn']}`;
                 result['url_seller'] = `${channelUrl['sendo']['vn']}`;
                 break;
             case 'tiki':
-                // result['url_chat'] = `${channelUrl['tiki']['vn']}`;
                 result['url_seller'] = `${channelUrl['tiki']['vn']}`;
                 break;
             default:
@@ -335,9 +337,8 @@ export default class AppComponent extends Component {
     };
 
     getListShop = async () => {
+        window.autoLogin = [];
         try {
-            window.logoutList = [];
-            window.autoLogin = [];
             this.setState({reloadShop: true});
             let cookies = this.state.userMain.cookies;
             let admin_session = cookies.find((item) => item.name === "_admin_session_id");
@@ -360,15 +361,12 @@ export default class AppComponent extends Component {
                 data = data.connections.map((item) => {
                     item.type = item.type.toLowerCase();
                     item.option_webview = this.getOptionChannel(item);
+                    if (item.allow_access) {
+                        window.autoLogin.push(item.id);
+                    }
                     return item;
                 });
                 let new_view_channel_ids = data.map((item) => item.id.toString());
-                // let new_view_channel_ids = [];
-                // view_channel_ids.forEach((item) => {
-                //     if (data.find((channel) => channel.id === parseInt(item))) {
-                //         new_view_channel_ids.push(item);
-                //     }
-                // });
                 localStorage.setItem("view_channels", JSON.stringify(new_view_channel_ids));
                 setTimeout(() => {
                     this.setState({
@@ -529,6 +527,7 @@ export default class AppComponent extends Component {
             listShop,
             newVersion,
             checkingVersion,
+            closeUpdate
         } = this.state;
         if (checkingVersion) {
             return (
@@ -539,10 +538,24 @@ export default class AppComponent extends Component {
                 </div>
             );
         }
-        if (newVersion) {
+        if (newVersion && !closeUpdate) {
             return (
-                <div id="app" className="bg-login">
+                <div
+                    id="app" className="bg-login"
+                >
                     <NewVersion />
+                    <div
+                        style={{
+                            position: 'absolute', top: 15, right: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                        }}
+                        onClick={() => this.setState({ closeUpdate: true })}
+                    >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 6L6 18" stroke="#C4C4C4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M6 6L18 18" stroke="#C4C4C4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+
+                    </div>
                 </div>
             );
         }
@@ -645,7 +658,8 @@ export default class AppComponent extends Component {
                     getLogoChannels={this.getLogoChannels} saveViewChannel={this.saveViewChannel}
                     getOptionChannel={this.getOptionChannel} userMain={this.state.userMain}
                     linkAdmin={this.state.linkAdmin}
-                    getListShop={this.getListShop} reloadShop={this.state.reloadShop}
+                    getListShop={this.getListShop}
+                    reloadShop={this.state.reloadShop}
                     getViewChannelsId={this.getViewChannelsId}
                     updateShop={this.updateShop} visiblePopupFilter={this.state.visiblePopupFilter}
                     setVisibleFilter={(visible) => this.setState({visiblePopupFilter: visible})}
